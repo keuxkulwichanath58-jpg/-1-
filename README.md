@@ -3,13 +3,13 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
 -- ลบ UI เก่า
-if LocalPlayer.PlayerGui:FindFirstChild("VelocitySpeedGui") then
-    LocalPlayer.PlayerGui.VelocitySpeedGui:Destroy()
+if LocalPlayer.PlayerGui:FindFirstChild("BypassSpeedGui") then
+    LocalPlayer.PlayerGui.BypassSpeedGui:Destroy()
 end
 
 -- สร้าง UI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "VelocitySpeedGui"
+ScreenGui.Name = "BypassSpeedGui"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -24,7 +24,7 @@ Frame.Draggable = true
 local TextLabel = Instance.new("TextLabel")
 TextLabel.Parent = Frame
 TextLabel.Size = UDim2.new(1, 0, 0.4, 0)
-TextLabel.Text = "Custom Speed (1-500)"
+TextLabel.Text = "No-TP Speed (1-500)"
 TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 TextLabel.BackgroundTransparency = 1
 
@@ -49,8 +49,8 @@ TextBox.FocusLost:Connect(function(enterPressed)
     end
 end)
 
--- ดันตัวละครไปตามทิศทางที่กดเดิน
-RunService.PreRender:Connect(function()
+-- ค่อยๆ ขยับตำแหน่งทีละนิดเพื่อหลบ Anti-TP ของเซิร์ฟเวอร์
+RunService.Heartbeat:Connect(function(deltaTime)
     local char = LocalPlayer.Character
     if not char then return end
     
@@ -58,12 +58,11 @@ RunService.PreRender:Connect(function()
     local humanoid = char:FindFirstChildOfClass("Humanoid")
     
     if hrp and humanoid and humanoid.MoveDirection.Magnitude > 0 and targetSpeed > 16 then
-        -- คำนวณทิศทางเดิน x ความเร็วที่ตั้งไว้
-        local moveDir = humanoid.MoveDirection
-        hrp.AssemblyLinearVelocity = Vector3.new(
-            moveDir.X * targetSpeed,
-            hrp.AssemblyLinearVelocity.Y, -- ปล่อยค่าแนวตั้งไว้เท่าเดิมเพื่อไม่ให้ตัวลอย/วาร์ป
-            moveDir.Z * targetSpeed
-        )
+        -- คำนวณความเร็วส่วนเกินจากค่าปกติ (16)
+        local extraSpeed = targetSpeed - 16
+        local moveVector = humanoid.MoveDirection * (extraSpeed * deltaTime)
+        
+        -- ค่อยๆ เคลื่อน CFrame ไปข้างหน้าเพื่อป้องกัน Server Rollback
+        hrp.CFrame = hrp.CFrame + moveVector
     end
 end)
