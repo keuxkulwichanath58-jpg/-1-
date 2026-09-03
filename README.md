@@ -4,13 +4,13 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Settings
-local SpeedValue = 100 -- ค่าเริ่มต้น
+local SpeedValue = 50 -- ปรับความเร็ว CFrame (แนะนำตั้ง 10-100 ก่อน เพราะพุ่งไวมาก)
 local IsActive = true
 local Connection
 
 -- Create Mobile UI
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "SpeedMobileUI"
+ScreenGui.Name = "SpeedMobileUI_V2"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
@@ -20,14 +20,14 @@ MainFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
 MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 MainFrame.BackgroundTransparency = 0.2
 MainFrame.Active = true
-MainFrame.Draggable = true -- สามารถลากปุ่มไปวางจุดอื่นบนจอได้
+MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
 local UICorner = Instance.new("UICorner")
 UICorner.CornerRadius = UDim.new(0, 10)
 UICorner.Parent = MainFrame
 
--- Toggle Button (ปุ่มเปิด-ปิด)
+-- Toggle Button
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Size = UDim2.new(0.9, 0, 0.45, 0)
 ToggleBtn.Position = UDim2.new(0.05, 0, 0.08, 0)
@@ -42,7 +42,7 @@ local BtnCorner = Instance.new("UICorner")
 BtnCorner.CornerRadius = UDim.new(0, 6)
 BtnCorner.Parent = ToggleBtn
 
--- Speed Input Box (ช่องพิมพ์ปรับความเร็ว 1-800)
+-- Speed Input Box
 local SpeedBox = Instance.new("TextBox")
 SpeedBox.Size = UDim2.new(0.9, 0, 0.35, 0)
 SpeedBox.Position = UDim2.new(0.05, 0, 0.58, 0)
@@ -58,19 +58,19 @@ local BoxCorner = Instance.new("UICorner")
 BoxCorner.CornerRadius = UDim.new(0, 6)
 BoxCorner.Parent = SpeedBox
 
--- Core Loop
+-- Core Speed Logic (CFrame Position Teleporting Method)
 local function EnableFastRun()
     if Connection then Connection:Disconnect() end
     
-    Connection = RunService.Stepped:Connect(function()
+    Connection = RunService.RenderStepped:Connect(function(deltaTime)
         if IsActive and LocalPlayer.Character then
             local Humanoid = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-            local RootPart = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             
-            if Humanoid and RootPart and Humanoid.MoveDirection.Magnitude > 0 then
-                local CurrentY = RootPart.AssemblyVelocity.Y
-                local MoveVector = Humanoid.MoveDirection * SpeedValue
-                RootPart.AssemblyVelocity = Vector3.new(MoveVector.X, CurrentY, MoveVector.Z)
+            if Humanoid and Humanoid.MoveDirection.Magnitude > 0 then
+                -- ย้ายตำแหน่งตัวละครไปข้างหน้าตามทิศทางจอยสติ๊กสัมผัส
+                local MoveDir = Humanoid.MoveDirection
+                local Offset = MoveDir * (SpeedValue * deltaTime * 5)
+                LocalPlayer.Character:PivotTo(LocalPlayer.Character:GetPivot() + Offset)
             end
         end
     end)
