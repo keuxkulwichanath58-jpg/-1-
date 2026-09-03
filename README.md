@@ -4,123 +4,82 @@ local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
 -- Settings
-local SpeedValue = 60 -- แนะนำเริ่มที่ 30-80 เพื่อไม่ให้โดนแบนด์
+local StepSpeed = 20 -- ปรับระดับความเร็ว (แนะนำ 10-40 จะไม่ติดเทเลพอร์ต)
 local IsActive = true
-local Connection
-local NoClipConnection
 
--- Create Mobile UI
+-- UI Setup
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "AntiTP_SpeedUI"
+ScreenGui.Name = "BypassBlinkSpeedUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 160, 0, 90)
 MainFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-MainFrame.BackgroundTransparency = 0.15
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+MainFrame.BackgroundTransparency = 0.2
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
 local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 10)
+UICorner.CornerRadius = UDim.new(0, 8)
 UICorner.Parent = MainFrame
 
--- Toggle Button
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Size = UDim2.new(0.9, 0, 0.45, 0)
 ToggleBtn.Position = UDim2.new(0.05, 0, 0.08, 0)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
-ToggleBtn.Text = "วิ่งเร็ว (กัน TP): ON"
+ToggleBtn.Text = "วิ่งเร็ว (Bypass): ON"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-ToggleBtn.TextSize = 13
+ToggleBtn.TextSize = 12
 ToggleBtn.Font = Enum.Font.SourceSansBold
 ToggleBtn.Parent = MainFrame
 
 local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 6)
+BtnCorner.CornerRadius = UDim.new(0, 5)
 BtnCorner.Parent = ToggleBtn
 
--- Speed Input Box
 local SpeedBox = Instance.new("TextBox")
 SpeedBox.Size = UDim2.new(0.9, 0, 0.35, 0)
 SpeedBox.Position = UDim2.new(0.05, 0, 0.58, 0)
-SpeedBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-SpeedBox.Text = tostring(SpeedValue)
-SpeedBox.PlaceholderText = "ปรับความเร็ว (10-200)"
+SpeedBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+SpeedBox.Text = tostring(StepSpeed)
+SpeedBox.PlaceholderText = "ปรับระดับ (10-50)"
 SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 SpeedBox.TextSize = 12
 SpeedBox.Font = Enum.Font.SourceSans
 SpeedBox.Parent = MainFrame
 
 local BoxCorner = Instance.new("UICorner")
-BoxCorner.CornerRadius = UDim.new(0, 6)
+BoxCorner.CornerRadius = UDim.new(0, 5)
 BoxCorner.Parent = SpeedBox
 
--- Linear Velocity Setup (Bypass Anti-Cheat)
-local function SetupSpeed()
-    if Connection then Connection:Disconnect() end
-    if NoClipConnection then NoClipConnection:Disconnect() end
-    
-    -- ลบแรงเดิมถ้ามีอยู่
-    local Char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-    local Root = Char:WaitForChild("HumanoidRootPart")
-    if Root:FindFirstChild("AntiTPSpeed") then
-        Root.AntiTPSpeed:Destroy()
-    end
-    if Root:FindFirstChild("SpeedAttachment") then
-        Root.SpeedAttachment:Destroy()
-    end
-
-    local Attachment = Instance.new("Attachment")
-    Attachment.Name = "SpeedAttachment"
-    Attachment.Parent = Root
-
-    local LV = Instance.new("LinearVelocity")
-    LV.Name = "AntiTPSpeed"
-    LV.MaxForce = 999999
-    LV.VelocityConstraintMode = Enum.VelocityConstraintMode.Vector
-    LV.RelativeTo = Enum.ActuatorRelativeTo.World
-    LV.Attachment0 = Attachment
-    LV.VectorVelocity = Vector3.new(0, 0, 0)
-    LV.Parent = Root
-
-    -- Loop ปรับทิศทางตามการเดิน
-    Connection = RunService.Stepped:Connect(function()
-        if IsActive and Char and Char:FindFirstChild("Humanoid") then
-            local Hum = Char.Humanoid
-            if Hum.MoveDirection.Magnitude > 0 then
-                LV.VectorVelocity = Hum.MoveDirection * SpeedValue
-            else
-                LV.VectorVelocity = Vector3.new(0, 0, 0)
-            end
-        else
-            LV.VectorVelocity = Vector3.new(0, 0, 0)
-        end
-    end)
-
-    -- NoClip เพื่อลดแรงต้านการชนวัตถุที่ทำให้ติดเทเลพอร์ต
-    NoClipConnection = RunService.Stepped:Connect(function()
-        if IsActive and Char then
-            for _, part in pairs(Char:GetDescendants()) do
-                if part:IsA("BasePart") and part.CanCollide then
-                    part.CanCollide = false
-                end
+-- Core Loop Bypass (Pulse Teleportation)
+task.spawn(function()
+    while true do
+        task.wait(0.03) -- เว้นจังหวะส่งค่าให้เซิร์ฟเวอร์ยอมรับ
+        if IsActive and LocalPlayer.Character then
+            local Hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            local Root = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            
+            if Hum and Root and Hum.MoveDirection.Magnitude > 0 then
+                -- ขยับระยะทางสั้นๆ ถี่ๆ หลบระบบตรวจจับ
+                local Distance = Hum.MoveDirection * (StepSpeed / 10)
+                Root.CFrame = Root.CFrame + Distance
             end
         end
-    end)
-end
+    end
+end)
 
 -- Handlers
 ToggleBtn.MouseButton1Click:Connect(function()
     IsActive = not IsActive
     if IsActive then
-        ToggleBtn.Text = "วิ่งเร็ว (กัน TP): ON"
+        ToggleBtn.Text = "วิ่งเร็ว (Bypass): ON"
         ToggleBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
     else
-        ToggleBtn.Text = "วิ่งเร็ว (กัน TP): OFF"
+        ToggleBtn.Text = "วิ่งเร็ว (Bypass): OFF"
         ToggleBtn.BackgroundColor3 = Color3.fromRGB(180, 40, 40)
     end
 end)
@@ -128,13 +87,9 @@ end)
 SpeedBox.FocusLost:Connect(function()
     local Num = tonumber(SpeedBox.Text)
     if Num then
-        SpeedValue = math.clamp(Num, 1, 800)
-        SpeedBox.Text = tostring(SpeedValue)
+        StepSpeed = math.clamp(Num, 1, 800)
+        SpeedBox.Text = tostring(StepSpeed)
     else
-        SpeedBox.Text = tostring(SpeedValue)
+        SpeedBox.Text = tostring(StepSpeed)
     end
 end)
-
--- Execute
-SetupSpeed()
-LocalPlayer.CharacterAdded:Connect(SetupSpeed)
