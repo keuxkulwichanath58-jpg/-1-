@@ -1,15 +1,16 @@
--- STREAMING_CHUNK:Initializing Roblox Advanced Script v6 with Real Hitbox Expansion & Damage Hook...
+-- STREAMING_CHUNK:Initializing Roblox Advanced Script v7 with 1-200 Hitbox Expansion & Camera Head Lock...
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
+local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
-if CoreGui:FindFirstChild("RobloxAdvancedScriptPanelV6") then
-CoreGui.RobloxAdvancedScriptPanelV6:Destroy()
+if CoreGui:FindFirstChild("RobloxAdvancedScriptPanelV7") then
+CoreGui.RobloxAdvancedScriptPanelV7:Destroy()
 end
 -- STREAMING_CHUNK:Creating ScreenGui and Main Frame UI...
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "RobloxAdvancedScriptPanelV6"
+ScreenGui.Name = "RobloxAdvancedScriptPanelV7"
 ScreenGui.Parent = CoreGui
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 local MainFrame = Instance.new("Frame")
@@ -17,8 +18,8 @@ MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 23, 42)
 MainFrame.BorderSizePixel = 0
-MainFrame.Position = UDim2.new(0.5, -240, 0.5, -250)
-MainFrame.Size = UDim2.new(0, 480, 0, 520)
+MainFrame.Position = UDim2.new(0.5, -240, 0.5, -260)
+MainFrame.Size = UDim2.new(0, 480, 0, 560)
 MainFrame.Active = true
 MainFrame.Draggable = true
 local UICorner = Instance.new("UICorner")
@@ -42,7 +43,7 @@ TitleLabel.BackgroundTransparency = 1
 TitleLabel.Position = UDim2.new(0, 15, 0, 0)
 TitleLabel.Size = UDim2.new(0, 260, 1, 0)
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "ROBLOX ULTIMATE SCRIPT v6.0"
+TitleLabel.Text = "ROBLOX ULTIMATE SCRIPT v7.0"
 TitleLabel.TextColor3 = Color3.fromRGB(248, 250, 252)
 TitleLabel.TextSize = 13
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -64,7 +65,7 @@ Container.Parent = MainFrame
 Container.BackgroundTransparency = 1
 Container.Position = UDim2.new(0, 12, 0, 60)
 Container.Size = UDim2.new(1, -24, 1, -70)
-Container.CanvasSize = UDim2.new(0, 0, 0, 680)
+Container.CanvasSize = UDim2.new(0, 0, 0, 780)
 Container.ScrollBarThickness = 4
 local UIListLayout = Instance.new("UIListLayout")
 UIListLayout.Parent = Container
@@ -72,17 +73,18 @@ UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.Padding = UDim.new(0, 10)
 -- State Variables
 local scriptEnabled = true
-local hitboxSize = 4.0 -- Real head size expansion (default 4x)
-local damageMultiplier = 4
+local hitboxSize = 10.0 -- Adjustable 1 to 200
+local damageMultiplier = 5
 local walkSpeedValue = 26
+local aimlockActive = false
 local espActive = true
 local noclipActive = false
 local infiniteJumpActive = false
--- STREAMING_CHUNK:Building Feature 1 (Real Head Hitbox Expansion & Damage Scaling Hook)...
+-- STREAMING_CHUNK:Building Feature 1 (Hitbox 1-200 & Damage Hook)...
 local F1Frame = Instance.new("Frame")
 F1Frame.Parent = Container
 F1Frame.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
-F1Frame.Size = UDim2.new(1, 0, 0, 115)
+F1Frame.Size = UDim2.new(1, 0, 0, 95)
 local F1Corner = Instance.new("UICorner")
 F1Corner.CornerRadius = UDim.new(0, 8)
 F1Corner.Parent = F1Frame
@@ -92,32 +94,30 @@ F1Label.BackgroundTransparency = 1
 F1Label.Position = UDim2.new(0, 12, 0, 8)
 F1Label.Size = UDim2.new(1, -24, 0, 20)
 F1Label.Font = Enum.Font.GothamBold
-F1Label.Text = "1. ขยายหัวโตพิเศษ + ดาเมจหัว X4 (Real Hitbox)"
+F1Label.Text = "1. ขยายหัว (Hitbox 1-200) + ดาเมจหัว X5"
 F1Label.TextColor3 = Color3.fromRGB(226, 232, 240)
 F1Label.TextSize = 12
 F1Label.TextXAlignment = Enum.TextXAlignment.Left
 local F1ValueLabel = Instance.new("TextLabel")
 F1ValueLabel.Parent = F1Frame
 F1ValueLabel.BackgroundTransparency = 1
-F1ValueLabel.Position = UDim2.new(1, -150, 0, 8)
-F1ValueLabel.Size = UDim2.new(0, 138, 0, 20)
+F1ValueLabel.Position = UDim2.new(1, -160, 0, 8)
+F1ValueLabel.Size = UDim2.new(0, 148, 0, 20)
 F1ValueLabel.Font = Enum.Font.GothamSemibold
-F1ValueLabel.Text = "Size: 4.0x | Dmg: 4x"
+F1ValueLabel.Text = "Size: 10.0 | Dmg: 5x"
 F1ValueLabel.TextColor3 = Color3.fromRGB(129, 140, 248)
 F1ValueLabel.TextSize = 11
 F1ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
--- Real-time head scaling loop (ensures heads become huge, semi-transparent, and non-colliding for easy target hits)
+-- Hitbox scaling execution loop (Supports size range 1 to 200)
 RunService.RenderStepped:Connect(function()
 if not scriptEnabled then return end
 for _, plr in ipairs(Players:GetPlayers()) do
 if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
 local head = plr.Character:FindFirstChild("Head")
 if head then
--- Force head size expansion
 head.Size = Vector3.new(hitboxSize, hitboxSize, hitboxSize)
-head.Transparency = 0.4
+head.Transparency = 0.5
 head.CanCollide = false
--- Inject damage modifier multiplier tag for weapon scripts
 local humanoid = plr.Character:FindFirstChildOfClass("Humanoid")
 if humanoid and not humanoid:FindFirstChild("DamageMultiplierTag") then
 local tag = Instance.new("NumberValue")
@@ -127,6 +127,60 @@ tag.Parent = humanoid
 end
 end
 end
+end
+end)
+-- STREAMING_CHUNK:Building Feature Aimbot (Head Lock Toggle)...
+local AimFrame = Instance.new("Frame")
+AimFrame.Parent = Container
+AimFrame.BackgroundColor3 = Color3.fromRGB(30, 41, 59)
+AimFrame.Size = UDim2.new(1, 0, 0, 55)
+local ACorn = Instance.new("UICorner")
+ACorn.CornerRadius = UDim.new(0, 8)
+ACorn.Parent = AimFrame
+local ALabel = Instance.new("TextLabel")
+ALabel.Parent = AimFrame
+ALabel.BackgroundTransparency = 1
+ALabel.Position = UDim2.new(0, 12, 0, 0)
+ALabel.Size = UDim2.new(0, 300, 1, 0)
+ALabel.Font = Enum.Font.GothamBold
+ALabel.Text = "ล็อคเป้าหัวออโต้ (Aimbot Head Lock)"
+ALabel.TextColor3 = Color3.fromRGB(226, 232, 240)
+ALabel.TextSize = 12
+ALabel.TextXAlignment = Enum.TextXAlignment.Left
+local AToggle = Instance.new("TextButton")
+AToggle.Parent = AimFrame
+AToggle.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
+AToggle.Position = UDim2.new(1, -75, 0.5, -15)
+AToggle.Size = UDim2.new(0, 60, 0, 30)
+AToggle.Font = Enum.Font.GothamBold
+AToggle.Text = "OFF"
+AToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+AToggle.TextSize = 12
+local ATCorner = Instance.new("UICorner")
+ATCorner.CornerRadius = UDim.new(0, 6)
+ATCorner.Parent = AToggle
+RunService.RenderStepped:Connect(function()
+if not scriptEnabled or not aimlockActive then return end
+local closestPlr = nil
+local shortestDist = math.huge
+for _, plr in ipairs(Players:GetPlayers()) do
+if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("Head") then
+local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+if hum and hum.Health > 0 then
+local headPos, onScreen = Camera:WorldToViewportPoint(plr.Character.Head.Position)
+if onScreen then
+local mousePos = UserInputService:GetMouseLocation()
+local dist = (Vector2.new(headPos.X, headPos.Y) - mousePos).Magnitude
+if dist < shortestDist then
+shortestDist = dist
+closestPlr = plr
+end
+end
+end
+end
+end
+if closestPlr and closestPlr.Character and closestPlr.Character:FindFirstChild("Head") then
+Camera.CFrame = CFrame.new(Camera.CFrame.Position, closestPlr.Character.Head.Position)
 end
 end)
 -- STREAMING_CHUNK:Building WalkSpeed Controller Booster...
@@ -352,12 +406,17 @@ scriptEnabled = not scriptEnabled
 MasterButton.Text = scriptEnabled and "ACTIVE" or "PAUSED"
 MasterButton.BackgroundColor3 = scriptEnabled and Color3.fromRGB(16, 185, 129) or Color3.fromRGB(239, 68, 68)
 end)
+AToggle.MouseButton1Click:Connect(function()
+aimlockActive = not aimlockActive
+AToggle.Text = aimlockActive and "ON" or "OFF"
+AToggle.BackgroundColor3 = aimlockActive and Color3.fromRGB(16, 185, 129) or Color3.fromRGB(239, 68, 68)
+end)
 F2Toggle.MouseButton1Click:Connect(function()
 espActive = not espActive
 F2Toggle.Text = espActive and "ON" or "OFF"
+F2Toggle.Position = UDim2.new(1, -75, 0.5, -15) -- alignmentfix
 F2Toggle.BackgroundColor3 = espActive and Color3.fromRGB(16, 185, 129) or Color3.fromRGB(239, 68, 68)
 end)
-F3Toggle.MouseButton1ContextAction = nil
 F3Toggle.MouseButton1Click:Connect(function()
 noclipActive = not noclipActive
 F3Toggle.Text = noclipActive and "ON" or "OFF"
@@ -368,4 +427,4 @@ infiniteJumpActive = not infiniteJumpActive
 F4Toggle.Text = infiniteJumpActive and "ON" or "OFF"
 F4Toggle.BackgroundColor3 = infiniteJumpActive and Color3.fromRGB(16, 185, 129) or Color3.fromRGB(239, 68, 68)
 end)
-print("Roblox Ultimate Script v6.0 loaded successfully with Real Hitbox & Damage Scaling!")
+print("Roblox Ultimate Script v7.0 loaded successfully with Aimbot & Hitbox 1-200!")
