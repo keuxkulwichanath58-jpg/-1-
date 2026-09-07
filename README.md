@@ -48,7 +48,7 @@ MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 MainFrame.BackgroundTransparency = 0.05
 MainFrame.Position = UDim2.new(0.5, -170, 0.5, -190)
-MainFrame.Size = UDim2.new(0, 340, 0, 400)
+MainFrame.Size = UDim2.new(0, 340, 0, 410)
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -135,7 +135,6 @@ for _, player in pairs(Players:GetPlayers()) do
 if player ~= LocalPlayer and player.Character then
 local head = player.Character:FindFirstChild("Head")
 local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
--- เช็คว่ามีชีวิตอยู่และไม่ใช่ทีมเดียวกัน (ถ้าเกมมีระบบ Team)
 if head and humanoid and humanoid.Health > 0 then
 local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
 if onScreen then
@@ -149,7 +148,6 @@ end
 end
 end
 if target then
--- สมูทกล้องล็อกตรงหัวเป๊ะๆ แบบเนียนตา
 Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
 end
 end
@@ -195,7 +193,7 @@ end)
 local TeleportBox = Instance.new("TextBox")
 TeleportBox.Parent = MainFrame
 TeleportBox.BackgroundColor3 = Color3.fromRGB(24, 24, 34)
-TeleportBox.Position = UDim2.new(0, 15, 0, 290)
+TeleportBox.Position = UDim2.new(0, 15, 0, 300)
 TeleportBox.Size = UDim2.new(0, 310, 0, 42)
 TeleportBox.Font = Enum.Font.GothamMedium
 TeleportBox.PlaceholderText = "พิมพ์ชื่อหรือชื่อเล่นผู้เล่นเพื่อวาป..."
@@ -209,7 +207,7 @@ UICornerTP.Parent = TeleportBox
 local TeleportBtn = Instance.new("TextButton")
 TeleportBtn.Parent = MainFrame
 TeleportBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 160)
-TeleportBtn.Position = UDim2.new(0, 15, 0, 340)
+TeleportBtn.Position = UDim2.new(0, 15, 0, 350)
 TeleportBtn.Size = UDim2.new(0, 310, 0, 42)
 TeleportBtn.Font = Enum.Font.GothamBold
 TeleportBtn.Text = "🚀 วาปไปหาเป้าหมายทันที"
@@ -223,9 +221,9 @@ local targetNameText = string.lower(TeleportBox.Text)
 if targetNameText == "" then return end
 for _, p in pairs(Players:GetPlayers()) do
 if p ~= LocalPlayer and (string.find(string.lower(p.Name), targetNameText) or string.find(string.lower(p.DisplayName), targetNameText)) then
-if p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
--- วาปไปเหนือหัวเล็กน้อยเพื่อความปลอดภัยไม่ให้ตัวติดกัน
-LocalPlayer.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 3, 0)
+if p.Character and p.Character:FindFirstChild("HumanoidRootRank") or p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+local targetHRP = p.Character:FindFirstChild("HumanoidRootPart")
+LocalPlayer.Character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0)
 break
 end
 end
