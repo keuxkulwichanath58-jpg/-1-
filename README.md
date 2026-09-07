@@ -1,5 +1,5 @@
 --// ==========================================
---// ROBLOX HOOD VIP ULTIMATE SCRIPT (7 FEATURES)
+--// ROBLOX HOOD VIP ULTIMATE SCRIPT (8 FEATURES)
 --// HIGHEST QUALITY & 100% WORKING FOR HOOD GAMES
 --// ==========================================
 local Players = game:GetService("Players")
@@ -41,14 +41,14 @@ ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 255, 200)),
 ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 120, 255))
 })
 UIGradientBtn.Parent = ToggleButton
--- หน้าต่างเมนูหลัก (Main Frame - VIP Glassmorphism)
+-- หน้าต่างเมนูหลัก (Main Frame - ขยายขนาดรองรับฟังก์ชันเพิ่มดาเมจ)
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
 MainFrame.BackgroundTransparency = 0.05
-MainFrame.Position = UDim2.new(0.5, -170, 0.5, -190)
-MainFrame.Size = UDim2.new(0, 340, 0, 410)
+MainFrame.Position = UDim2.new(0.5, -170, 0.5, -230)
+MainFrame.Size = UDim2.new(0, 340, 0, 480)
 MainFrame.Visible = false
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -65,7 +65,7 @@ TitleLabel.Parent = MainFrame
 TitleLabel.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
 TitleLabel.Size = UDim2.new(1, 0, 0, 50)
 TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.Text = "💎 HOOD VIP ULTIMATE V2 💎"
+TitleLabel.Text = "💎 HOOD VIP ULTIMATE V3 💎"
 TitleLabel.TextColor3 = Color3.fromRGB(0, 255, 200)
 TitleLabel.TextSize = 15
 local UICornerTitle = Instance.new("UICorner")
@@ -189,11 +189,76 @@ humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
 end
 end
 end)
---// --- [ฟังก์ชันที่ 7: วาปไปหาฝั่งตรงข้ามโดยเลือกชื่อ (Smart Teleport)] ---
+--// --- [ฟังก์ชันที่ 7: ขยายดาเมจตัวละคร (Damage Multiplier 1-200)] ---
+local damageMultiplier = 1
+local damageEnabled = false
+createFeatureToggle("⚡ ขยายดาเมจ (Damage Multiplier)", 110, false, function(state)
+damageEnabled = state
+end)
+-- ป้ายแสดงค่าดาเมจปัจจุบันและปุ่มควบคุม
+local DamageValueLabel = Instance.new("TextLabel")
+DamageValueLabel.Parent = MainFrame
+DamageValueLabel.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+DamageValueLabel.Position = UDim2.new(0, 15, 0, 158)
+DamageValueLabel.Size = UDim2.new(0, 310, 0, 28)
+DamageValueLabel.Font = Enum.Font.GothamMedium
+DamageValueLabel.Text = "ระดับความแรงดาเมจ: " .. damageMultiplier .. "x"
+DamageValueLabel.TextColor3 = Color3.fromRGB(0, 255, 200)
+DamageValueLabel.TextSize = 12
+local UICornerDmgVal = Instance.new("UICorner")
+UICornerDmgVal.CornerRadius = UDim.new(0, 6)
+UICornerDmgVal.Parent = DamageValueLabel
+local decDamageBtn = Instance.new("TextButton")
+decDamageBtn.Parent = MainFrame
+decDamageBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+decDamageBtn.Position = UDim2.new(0, 15, 0, 192)
+decDamageBtn.Size = UDim2.new(0, 148, 0, 32)
+decDamageBtn.Font = Enum.Font.GothamBold
+decDamageBtn.Text = "- ลด 10"
+decDamageBtn.TextColor3 = Color3.fromRGB(255, 100, 100)
+decDamageBtn.TextSize = 12
+local UICornerDecDmg = Instance.new("UICorner")
+UICornerDecDmg.CornerRadius = UDim.new(0, 6)
+UICornerDecDmg.Parent = decDamageBtn
+local incDamageBtn = Instance.new("TextButton")
+incDamageBtn.Parent = MainFrame
+incDamageBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+incDamageBtn.Position = UDim2.new(0, 177, 0, 192)
+incDamageBtn.Size = UDim2.new(0, 148, 0, 32)
+incDamageBtn.Font = Enum.Font.GothamBold
+incDamageBtn.Text = "+ เพิ่ม 10"
+incDamageBtn.TextColor3 = Color3.fromRGB(0, 255, 200)
+incDamageBtn.TextSize = 12
+local UICornerIncDmg = Instance.new("UICorner")
+UICornerIncDmg.CornerRadius = UDim.new(0, 6)
+UICornerIncDmg.Parent = incDamageBtn
+decDamageBtn.MouseButton1Click:Connect(function()
+damageMultiplier = math.clamp(damageMultiplier - 10, 1, 200)
+DamageValueLabel.Text = "ระดับความแรงดาเมจ: " .. damageMultiplier .. "x"
+end)
+incDamageBtn.MouseButton1Click:Connect(function()
+damageMultiplier = math.clamp(damageMultiplier + 10, 1, 200)
+DamageValueLabel.Text = "ระดับความแรงดาเมจ: " .. damageMultiplier .. "x"
+end)
+-- ระบบดักจับการสร้างดาเมจหรือกระสุน (Hook remote events / tool damage properties หากเกมรองรับ)
+RunService.Heartbeat:Connect(function()
+if damageEnabled and LocalPlayer.Character then
+local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+if tool then
+pcall(function()
+-- รองรับดาเมจโมเดลทั่วไปใน Hood (เช่น Gun script values / Damage properties)
+if tool:FindFirstChild("Damage") then
+tool.Damage.Value = damageMultiplier * 5 -- ปรับตามความเหมาะสมของเกม
+end
+end)
+end
+end
+end)
+--// --- [ฟังก์ชันที่ 8: วาปไปหาฝั่งตรงข้ามโดยเลือกชื่อ (Smart Teleport)] ---
 local TeleportBox = Instance.new("TextBox")
 TeleportBox.Parent = MainFrame
 TeleportBox.BackgroundColor3 = Color3.fromRGB(24, 24, 34)
-TeleportBox.Position = UDim2.new(0, 15, 0, 300)
+TeleportBox.Position = UDim2.new(0, 15, 0, 360)
 TeleportBox.Size = UDim2.new(0, 310, 0, 42)
 TeleportBox.Font = Enum.Font.GothamMedium
 TeleportBox.PlaceholderText = "พิมพ์ชื่อหรือชื่อเล่นผู้เล่นเพื่อวาป..."
@@ -207,7 +272,7 @@ UICornerTP.Parent = TeleportBox
 local TeleportBtn = Instance.new("TextButton")
 TeleportBtn.Parent = MainFrame
 TeleportBtn.BackgroundColor3 = Color3.fromRGB(0, 220, 160)
-TeleportBtn.Position = UDim2.new(0, 15, 0, 350)
+TeleportBtn.Position = UDim2.new(0, 15, 0, 412)
 TeleportBtn.Size = UDim2.new(0, 310, 0, 42)
 TeleportBtn.Font = Enum.Font.GothamBold
 TeleportBtn.Text = "🚀 วาปไปหาเป้าหมายทันที"
@@ -221,7 +286,7 @@ local targetNameText = string.lower(TeleportBox.Text)
 if targetNameText == "" then return end
 for _, p in pairs(Players:GetPlayers()) do
 if p ~= LocalPlayer and (string.find(string.lower(p.Name), targetNameText) or string.find(string.lower(p.DisplayName), targetNameText)) then
-if p.Character and p.Character:FindFirstChild("HumanoidRootRank") or p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+if p.Character and p.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
 local targetHRP = p.Character:FindFirstChild("HumanoidRootPart")
 LocalPlayer.Character.HumanoidRootPart.CFrame = targetHRP.CFrame * CFrame.new(0, 3, 0)
 break
@@ -229,4 +294,4 @@ end
 end
 end
 end)
-print("Hood VIP Ultimate Script (7 Features) Loaded Successfully!")
+print("Hood VIP Ultimate Script (8 Features with Damage Multiplier) Loaded Successfully!")
